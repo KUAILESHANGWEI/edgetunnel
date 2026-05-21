@@ -4,7 +4,7 @@ set -euo pipefail
 REPO="KUAILESHANGWEI/edgetunnel"
 BRANCH="${EDGETUNNEL_BRANCH:-main}"
 INSTALL_DIR="${EDGETUNNEL_DIR:-/opt/edgetunnel}"
-ARCHIVE_URL="https://github.com/${REPO}/archive/refs/heads/${BRANCH}.tar.gz"
+TARBALL_URL="https://api.github.com/repos/${REPO}/tarball/${BRANCH}"
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1
@@ -22,9 +22,9 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$INSTALL_DIR"
-curl -fsSL "$ARCHIVE_URL" -o "$tmpdir/edgetunnel.tar.gz"
+curl -fsSL "$TARBALL_URL" -o "$tmpdir/edgetunnel.tar.gz"
 tar -xzf "$tmpdir/edgetunnel.tar.gz" -C "$tmpdir"
-srcdir="$tmpdir/edgetunnel-${BRANCH}"
+srcdir="$(find "$tmpdir" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 
 rm -rf "${INSTALL_DIR:?}/"*
 cp -R "$srcdir"/. "$INSTALL_DIR"/
