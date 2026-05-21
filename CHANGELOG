@@ -10,7 +10,7 @@
 ### Change
 
 - 优化 **Shadowsocks 订阅**：关闭 TLS 时会自动将优选端口重写为 noTLS 端口。（但是该功能不适用于反代IP）
-- 优化 **GO2SOCKS5** 变量：从覆盖模式改为追加模式。[PR #1202](https://github.com/cmliu/edgetunnel/pull/1202)
+- 优化 **GO2SOCKS5** 变量：从覆盖模式改为追加模式。[PR #1202](https://github.com/KUAILESHANGWEI/edgetunnel/pull/1202)
 
 ## [2.1.20260513042803] - 2026-05-13 04:28:03
 
@@ -78,7 +78,7 @@
 ### Debug
 
 - 同步上游项目更新，修复 **HTTPS 代理** 已知问题。[参考链接](https://t.me/Enkelte_notif/824)
-- 修复已知问题 [#1117](https://github.com/cmliu/edgetunnel/issues/1117) [#1119](https://github.com/cmliu/edgetunnel/issues/1119) [#1120](https://github.com/cmliu/edgetunnel/issues/1120)
+- 修复已知问题 [#1117](https://github.com/KUAILESHANGWEI/edgetunnel/issues/1117) [#1119](https://github.com/KUAILESHANGWEI/edgetunnel/issues/1119) [#1120](https://github.com/KUAILESHANGWEI/edgetunnel/issues/1120)
 
 ## [2.1.20260416044724] - 2026-04-16 04:47:24
 

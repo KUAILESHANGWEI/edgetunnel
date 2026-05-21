@@ -1,0 +1,120 @@
+name: Sync mirrored raw assets
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: "41 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync_raw_assets:
+    name: Refresh repository-hosted raw mirrors
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout target repo
+        uses: actions/checkout@v6
+
+      - name: Download raw mirrors
+        run: |
+          set -euo pipefail
+
+          mkdir -p assets/mirrors/ACL4SSR/Clash/config assets/mirrors/ACL4SSR/Clash/Ruleset assets/mirrors/CF-CIDR assets/mirrors/SagerNet/sing-geoip/rule-set assets/mirrors/SagerNet/sing-geosite/rule-set
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/ACL4SSR/refs/heads/main/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini \
+            -o assets/mirrors/ACL4SSR/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/adobe.list \
+            -o assets/mirrors/ACL4SSR/Clash/adobe.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/CloudflareCIDR.list \
+            -o assets/mirrors/ACL4SSR/Clash/CloudflareCIDR.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/LocalAreaNetwork.list \
+            -o assets/mirrors/ACL4SSR/Clash/LocalAreaNetwork.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/UnBan.list \
+            -o assets/mirrors/ACL4SSR/Clash/UnBan.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanAD.list \
+            -o assets/mirrors/ACL4SSR/Clash/BanAD.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/BanProgramAD.list \
+            -o assets/mirrors/ACL4SSR/Clash/BanProgramAD.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/GoogleCN.list \
+            -o assets/mirrors/ACL4SSR/Clash/GoogleCN.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Ruleset/SteamCN.list \
+            -o assets/mirrors/ACL4SSR/Clash/Ruleset/SteamCN.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Telegram.list \
+            -o assets/mirrors/ACL4SSR/Clash/Telegram.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyMedia.list \
+            -o assets/mirrors/ACL4SSR/Clash/ProxyMedia.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ProxyLite.list \
+            -o assets/mirrors/ACL4SSR/Clash/ProxyLite.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list \
+            -o assets/mirrors/ACL4SSR/Clash/ChinaDomain.list
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaCompanyIp.list \
+            -o assets/mirrors/ACL4SSR/Clash/ChinaCompanyIp.list
+
+          sed -i \
+            -e 's#https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/#https://raw.githubusercontent.com/KUAILESHANGWEI/edgetunnel/main/assets/mirrors/ACL4SSR/Clash/#g' \
+            -e 's#https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/adobe.list#https://raw.githubusercontent.com/KUAILESHANGWEI/edgetunnel/main/assets/mirrors/ACL4SSR/Clash/adobe.list#g' \
+            -e 's#https://raw.githubusercontent.com/cmliu/ACL4SSR/main/Clash/CloudflareCIDR.list#https://raw.githubusercontent.com/KUAILESHANGWEI/edgetunnel/main/assets/mirrors/ACL4SSR/Clash/CloudflareCIDR.list#g' \
+            assets/mirrors/ACL4SSR/Clash/config/ACL4SSR_Online_Mini_MultiMode_CF.ini
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/cmliu/main/CF-CIDR.txt \
+            -o assets/mirrors/CF-CIDR/CF-CIDR.txt
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/cmliu/main/CF-CIDR/ct.txt \
+            -o assets/mirrors/CF-CIDR/ct.txt
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/cmliu/main/CF-CIDR/cu.txt \
+            -o assets/mirrors/CF-CIDR/cu.txt
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/cmliu/cmliu/main/CF-CIDR/cmcc.txt \
+            -o assets/mirrors/CF-CIDR/cmcc.txt
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs \
+            -o assets/mirrors/SagerNet/sing-geoip/rule-set/geoip-cn.srs
+
+          curl -fsSL \
+            https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs \
+            -o assets/mirrors/SagerNet/sing-geosite/rule-set/geosite-cn.srs
+
+      - name: Commit mirror updates
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/mirrors
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: sync mirrored raw assets"
+          git push

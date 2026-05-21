@@ -1,0 +1,65 @@
+name: Sync upstream release assets
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+env:
+  UPSTREAM_REPO: cmliu/edgetunnel
+  TARGET_REPO: KUAILESHANGWEI/edgetunnel
+
+jobs:
+  sync_release_assets:
+    name: Mirror latest upstream release assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync latest release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          release_json="$(gh api "repos/${UPSTREAM_REPO}/releases/latest" 2>/tmp/upstream-release.err || true)"
+          if [ -z "$release_json" ]; then
+            echo "No upstream release found or upstream release is not public."
+            cat /tmp/upstream-release.err || true
+            exit 0
+          fi
+
+          tag="$(jq -r '.tag_name' <<<"$release_json")"
+          name="$(jq -r '.name // .tag_name' <<<"$release_json")"
+          body="$(jq -r '.body // ""' <<<"$release_json")"
+          prerelease="$(jq -r '.prerelease' <<<"$release_json")"
+          draft="$(jq -r '.draft' <<<"$release_json")"
+
+          if ! gh release view "$tag" --repo "$TARGET_REPO" >/dev/null 2>&1; then
+            args=(release create "$tag" --repo "$TARGET_REPO" --title "$name" --notes "$body")
+            if [ "$prerelease" = "true" ]; then
+              args+=(--prerelease)
+            fi
+            if [ "$draft" = "true" ]; then
+              args+=(--draft)
+            fi
+            gh "${args[@]}"
+          else
+            gh release edit "$tag" --repo "$TARGET_REPO" --title "$name" --notes "$body"
+          fi
+
+          mkdir -p assets
+          jq -r '.assets[]? | @base64' <<<"$release_json" | while read -r encoded; do
+            [ -n "$encoded" ] || continue
+            asset="$(base64 -d <<<"$encoded")"
+            url="$(jq -r '.url' <<<"$asset")"
+            filename="$(jq -r '.name' <<<"$asset")"
+            curl -fsSL \
+              -H "Accept: application/octet-stream" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              "$url" \
+              -o "assets/$filename"
+            gh release upload "$tag" "assets/$filename" --repo "$TARGET_REPO" --clobber
+          done
